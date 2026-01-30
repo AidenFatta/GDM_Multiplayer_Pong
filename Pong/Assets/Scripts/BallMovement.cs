@@ -1,21 +1,55 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class BallMovement : MonoBehaviour
 {
     private Rigidbody2D rb;
+    private Vector2 direction;
+    private float speed = 3f;
+    private float maxSpeed = 5f;
+
+    public float Speed
+    {
+        get { return speed; }
+        set 
+        { 
+            if (value > maxSpeed)
+            {
+                speed = maxSpeed;
+            }
+            else if (speed < 0)
+            {
+                speed = 0;
+            }
+            else
+            {
+                speed = value;
+            }
+        }
+    }
+
+    public Vector2 Direction
+    {
+        get { return direction; }
+        set { direction = value.normalized; }
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.linearVelocity = new Vector2(3f, 3f);
+        direction = new Vector2(1f, 1f);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void FixedUpdate()
     {
+        rb.linearVelocity = direction * speed;
+    }
 
-
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Vector2 normal = collision.contacts[0].normal;
+        direction = Vector2.Reflect(direction, normal).normalized;
     }
 }
 
