@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-public class PaddleMovement : MonoBehaviour
+public abstract class PaddleMovement : MonoBehaviour, ICollidable
 {
     protected float speed = 5f;
     protected float maxSpeed = 7f;
@@ -20,8 +20,10 @@ public class PaddleMovement : MonoBehaviour
         transform.Translate(Vector3.up * input * Time.deltaTime * speed);
     }
 
-    protected virtual float GetMovementInput()
+    protected abstract float GetMovementInput();
+
+    public void OnHit(Collision2D collision)
     {
-        return 0f;
+        Debug.Log("Paddle hit detected!");
     }
 }
