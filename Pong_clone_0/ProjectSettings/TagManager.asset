@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - Wall
+  - Left Goal
+  - Right Goal
+  - Paddle
   layers:
   - Default
   - TransparentFX

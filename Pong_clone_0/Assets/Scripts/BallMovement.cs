@@ -1,12 +1,15 @@
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using Unity.Netcode;
+using UnityEngine.UIElements;
 
-public class BallMovement : MonoBehaviour, ICollidable
+public class BallMovement : NetworkBehaviour, ICollidable
 {
     private Rigidbody2D rb;
     private Vector2 direction;
     private float speed = 3f;
     private float maxSpeed = 5f;
+    protected NetworkVariable<Vector2> Position = new NetworkVariable<Vector2>();
 
     public float Speed
     {
@@ -34,25 +37,52 @@ public class BallMovement : MonoBehaviour, ICollidable
         set { direction = value.normalized; }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        direction = new Vector2(1f, 1f);
+    }
+
+    public void StartMovement()
+    {
+        if (IsServer)
+        {
+            direction = new Vector2(1f, 1f);
+        }
+        
     }
 
     private void FixedUpdate()
     {
-        rb.linearVelocity = direction * speed;
+        if (IsServer)
+        {
+            rb.linearVelocity = direction * speed;
+            Position.Value = rb.position;
+        }
+        else
+        {
+            transform.position = Position.Value;
+        }
+        
     }
 
     public void OnHit(Collision2D collision)
     {
+        if (!IsServer) return;
+
         Vector2 normal = collision.contacts[0].normal;
         direction = Vector2.Reflect(direction, normal).normalized;
+        if (collision.gameObject.CompareTag("Paddle"))
+        {
+            speed += 0.5f; 
+            Debug.Log("Ball hit a paddle! Increasing speed to: " + speed);
+        } 
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        if (!IsServer) return;
+
+        Debug.Log("Collision detected with: " + collision.gameObject.name);
         ICollidable collidable = collision.gameObject.GetComponent<ICollidable>();
         if (collidable == null)
         {
@@ -66,6 +96,23 @@ public class BallMovement : MonoBehaviour, ICollidable
 
         OnHit(collision);
     }
- 
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (!IsServer) return;
+
+        Debug.Log("Trigger detected with: " + collision.gameObject.name);
+        transform.position = Vector2.zero;
+        speed = 3f;
+        if (collision.gameObject.CompareTag("Left Goal"))
+        {
+            direction = new Vector2(1f, 1f);
+        }
+        else if (collision.gameObject.CompareTag("Right Goal"))
+        {
+            direction = new Vector2(-1f, 1f);
+        }
+    }
+
 }
 

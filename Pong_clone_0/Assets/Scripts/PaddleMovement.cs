@@ -6,7 +6,7 @@ public abstract class PaddleMovement : NetworkBehaviour, ICollidable
 {
     protected float speed = 5f;
     protected float maxSpeed = 7f;
-    protected NetworkVariable<float> yPosition = new NetworkVariable<float>(0f);
+    protected NetworkVariable<float> yPosition = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     protected Rigidbody2D rb;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -17,11 +17,13 @@ public abstract class PaddleMovement : NetworkBehaviour, ICollidable
 
     // Update is called once per frame
     void FixedUpdate()
-    {   
+    {
         if (IsOwner)
         {
             float input = GetMovementInput();
             float newY = transform.position.y + (input * Time.deltaTime * speed); 
+            if (newY > 2.8f) newY = 2.8f;
+            if (newY < -2.8f) newY = -2.8f;
             transform.position = new Vector3(transform.position.x, newY, 0);
             yPosition.Value = transform.position.y;
         }
